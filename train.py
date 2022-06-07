@@ -6,7 +6,7 @@ FIELD = ['Gender', 'Age', 'Annual Income (k$)', 'Spending Score (1-100)']
 gender_map = {0: 'Female', 1: 'Male'}
 
 # Prepare Data
-customer_df = pd.read_csv('Mall_Customers.csv')
+customer_df = pd.read_csv('data/Mall_Customers.csv')
 customers = customer_df[FIELD].to_numpy()
 
 for i in range(len(customers)):
