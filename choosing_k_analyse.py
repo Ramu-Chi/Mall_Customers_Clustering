@@ -3,7 +3,7 @@ import pandas as pd
 import random
 
 from my_model.k_mean import KMeans
-from my_model.my_plot import plot_customer_clusters
+from my_model.my_plot import *
 
 FIELD = ['Age', 'Annual Income (k$)', 'Spending Score (1-100)']
 
@@ -24,12 +24,16 @@ for cus in X:
     for i in range(len(cus)):
         cus[i] = (cus[i] - min_i[i]) / (max_i[i] - min_i[i])
         if i == 0: cus[i] /= 3 # weight age = 1/3
-        
+
 print(FIELD)
 print(X)
 
-km = KMeans(k=5)
+plot_elbow_method(X, 12)
+plot_silhouette_method(X, 12)
+
+# plot silhouette for k = 5
+km = KMeans(5)
 km.fit(X)
 labels = km.predict(X)
+plot_silhouette_single_k(X, labels)
 
-plot_customer_clusters(customers, labels, FIELD)

@@ -4,35 +4,56 @@ import numpy as np
 from .distance_function import euclidean_distance
 
 def silhouette_score(customers, labels):
-    sum_score = 0
+    coefficient_list = silhouette_coefficients(customers, labels)
+    return np.mean(coefficient_list)
+
+# calculate and return the silhouette coefficient of each sample
+def silhouette_coefficients(customers, labels):
+    coefficient_list = []
     cluster_list = cluster_grouping(customers, labels)
+
+    for idx in range(len(customers)):
+        a_i, b_i = 0, math.inf
+        cus_i = customers[idx]
+        label_i = labels[idx]
+
+        if len(cluster_list[label_i]) == 1: 
+            coefficient_list.append(0) # s_i = 0
+            continue
+
+        # Calculate a(i)
+        for cus_j in cluster_list[label_i]:
+            a_i += euclidean_distance(cus_i, cus_j)
+        a_i /= len(cluster_list[label_i]) - 1
+
+        # Calculate b(i)
+        for label_j in range(len(cluster_list)):
+            if label_i == label_j: continue
+            b_i_tmp = 0
+            for cus_j in cluster_list[label_j]:
+                b_i_tmp += euclidean_distance(cus_i, cus_j)
+            b_i_tmp /= len(cluster_list[label_j])
+
+            if b_i_tmp < b_i: b_i = b_i_tmp
+        
+        # Calculate s(i)
+        s_i = (b_i - a_i) / max(a_i, b_i)
+        coefficient_list.append(s_i)
     
-    for idx, cluster_i in enumerate(cluster_list):
-        if len(cluster_i) == 1: continue
+    return np.array(coefficient_list)
 
-        for cus_i in cluster_i:
-            a_i, b_i = 0, math.inf
+def RMSSTD(customers, labels):
+    cluster_list = cluster_grouping(customers, labels)
+    sum_square_error = 0
+    k = len(cluster_list)
+    P = len(customers[0])
 
-            # Calculate a(i)
-            for cus_j in cluster_i:
-                a_i += euclidean_distance(cus_i, cus_j)
-            a_i /= len(cluster_i) - 1
-
-            # Calculate b(i)
-            for idx2, cluster_j in enumerate(cluster_list):
-                if idx == idx2: continue
-                b_i_tmp = 0
-                for cus_j in cluster_j:
-                    b_i_tmp += euclidean_distance(cus_i, cus_j)
-                b_i_tmp /= len(cluster_j)
-
-                if b_i_tmp < b_i: b_i = b_i_tmp
-            
-            # Calculate s(i)
-            s_i = (b_i - a_i) / max(a_i, b_i)
-            sum_score += s_i
+    for cluster_i in cluster_list:
+        centroid_i = centroid(cluster_i)
+        for cus in cluster_i:
+            sum_square_error += euclidean_distance(cus, centroid_i) ** 2
     
-    return sum_score / len(customers)
+    return math.sqrt( sum_square_error / (P * (len(customers) - k)) )
 
 def dunn_index(customers, labels):
     min_inter_dist = math.inf
