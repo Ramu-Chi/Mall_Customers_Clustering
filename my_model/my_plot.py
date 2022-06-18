@@ -71,7 +71,7 @@ def plot_silhouette_single_k(customers, labels):
     plt.yticks([])
     plt.show()
 
-def plot_customer_clusters(customers, labels, field_names):
+def plot_customer_clusters(customers, labels, field_names, outliers=None):
     k = len(set(labels))
     cluster_list = cluster_grouping(customers, labels)
     centroid_list = np.array([centroid(cluster_list[i]) for i in range(k)])
@@ -80,15 +80,13 @@ def plot_customer_clusters(customers, labels, field_names):
     for idx1 in range(len(customers[0])):
         for idx2 in range(idx1 + 1, len(customers[0])):
             plt.scatter(
-                customers[:, idx1], customers[:, idx2], marker=".", s=30, lw=0, alpha=0.7, c=colors, edgecolor="k"
+                customers[:, idx1], customers[:, idx2], marker=".", s=50, lw=0, alpha=0.7, c=colors, edgecolor="k"
             )
 
-            # Labeling the clusters
-            centers = centroid_list[:, [idx1, idx2]]
-            # Draw white circles at cluster centers
+            # Draw cluster centers
             plt.scatter(
-                centers[:, 0],
-                centers[:, 1],
+                centroid_list[:, idx1],
+                centroid_list[:, idx2],
                 marker="o",
                 c="white",
                 alpha=1,
@@ -96,8 +94,12 @@ def plot_customer_clusters(customers, labels, field_names):
                 edgecolor="k",
             )
 
-            for i, c in enumerate(centers):
-                plt.scatter(c[0], c[1], marker="$%d$" % i, alpha=1, s=50, edgecolor="k")
+            for i, c in enumerate(centroid_list):
+                plt.scatter(c[idx1], c[idx2], marker="$%d$" % i, alpha=1, s=50, edgecolor="k")
+            
+            # Draw outliers
+            if outliers is not None:
+                plt.scatter(*zip(*outliers[:, [idx1, idx2]]), marker='o', facecolor='None', edgecolor='r', s=60)
 
             plt.title("Customer Clusters")
             plt.xlabel(field_names[idx1])
