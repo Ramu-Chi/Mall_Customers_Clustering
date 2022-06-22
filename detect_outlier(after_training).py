@@ -1,16 +1,17 @@
 '''
+NOTE: The detection results is not guaranteed outliers
 Detect possible outliers after training with k = 5 (choosing_k_analyse.py):
 
 Using the IQR method (only upper boundary) on the distances between each example and its cluster's centroid
 -> We find the example whose distance is not ordinary (too big)
 '''
-from copy import deepcopy
 import numpy as np
 import pandas as pd
 
 from my_model.distance_function import euclidean_distance
 from my_model.k_mean import KMeans
 from my_model.my_plot import plot_customer_clusters
+from my_model.preprocessing import min_max_scaling, z_score_scaling
 
 FIELD = ['Age', 'Annual Income (k$)', 'Spending Score (1-100)']
 
@@ -18,16 +19,11 @@ FIELD = ['Age', 'Annual Income (k$)', 'Spending Score (1-100)']
 customer_df = pd.read_csv('data/Mall_Customers.csv')
 customers = customer_df[FIELD].to_numpy(dtype=object)
 
-X = deepcopy(customers)
+# Scaling
+X = z_score_scaling(customers)
+X[:, 0] /= 3 # weight age = 1/3
 
-# Normalization (min-max scaling)
-min_i = [18, 15, 1]
-max_i = [70, 137, 99]
-for cus in X:
-    for i in range(len(cus)):
-        cus[i] = (cus[i] - min_i[i]) / (max_i[i] - min_i[i])
-        if i == 0: cus[i] /= 3 # weight age = 1/3
-
+# Training
 km = KMeans(k=5)
 km.fit(X)
 labels = km.predict(X)

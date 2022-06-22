@@ -1,4 +1,5 @@
 '''
+NOTE: The detection results is not guaranteed outliers
 Detect possible outliers in the dataset:
 
 Using the IQR method on each attributes that is chosen to cluster

@@ -1,5 +1,6 @@
-import matplotlib.pyplot as plt
 from matplotlib import cm
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 
 from .cluster_metric import silhouette_coefficients, silhouette_score, cluster_grouping, centroid
@@ -105,3 +106,11 @@ def plot_customer_clusters(customers, labels, field_names, outliers=None):
             plt.xlabel(field_names[idx1])
             plt.ylabel(field_names[idx2])
             plt.show()
+
+def plot_train_history(SSE_hist):
+    plt.plot(SSE_hist)
+    plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+    plt.title("Training Sum Square Error History")
+    plt.xlabel("Iteration")
+    plt.ylabel("SSE")
+    plt.show()

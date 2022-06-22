@@ -1,9 +1,11 @@
-from copy import deepcopy
+import numpy as np
 import pandas as pd
 import random
 
+from my_model.cluster_metric import davies_bouldin_index, silhouette_score
 from my_model.k_mean import KMeans
-from my_model.my_plot import plot_customer_clusters
+from my_model.my_plot import plot_customer_clusters, plot_train_history
+from my_model.preprocessing import min_max_scaling, z_score_scaling
 
 FIELD = ['Age', 'Annual Income (k$)', 'Spending Score (1-100)']
 
@@ -15,21 +17,20 @@ customers = customer_df[FIELD].to_numpy(dtype=object)
 # idx = random.sample(range(len(customers)), 100)
 # customers = customers[idx, :]
 
-X = deepcopy(customers)
+outlier_idx = [196, 197, 198, 199]
+customers = np.delete(customers, outlier_idx, axis=0)
 
-# Normalization (min-max scaling)
-min_i = [18, 15, 1]
-max_i = [70, 137, 99]
-for cus in X:
-    for i in range(len(cus)):
-        cus[i] = (cus[i] - min_i[i]) / (max_i[i] - min_i[i])
-        if i == 0: cus[i] /= 3 # weight age = 1/3
-        
-print(FIELD)
-print(X)
+# Scaling
+X = z_score_scaling(customers)
+X[:, 0] /= 3 # weight age = 1/3
+
+# print(FIELD)
+# print(X)
 
 km = KMeans(k=5)
-km.fit(X)
+hist = km.fit(X)
 labels = km.predict(X)
 
+plot_train_history(hist['SSE'])
+print(davies_bouldin_index(X, labels))
 plot_customer_clusters(customers, labels, FIELD)
