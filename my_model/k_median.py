@@ -5,9 +5,9 @@ import random
 from .distance_function import euclidean_distance
 
 def centroid(cluster):
-    return np.mean(cluster, axis=0)
+    return np.median(cluster, axis=0)
 
-class KMeans:
+class KMedians:
     def __init__(self, k, init_count=10, max_iter=300, tol=0.0001):
         self.k = k
         self.init_count = init_count

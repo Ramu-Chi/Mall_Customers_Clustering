@@ -2,12 +2,15 @@ import math
 import numpy as np
 
 from .distance_function import euclidean_distance
+from .k_mean import centroid as k_mean_centroid
+from .k_median import centroid as k_median_centroid
 
+# calculate the average silhouette coefficient of all samples
 def silhouette_score(customers, labels):
     coefficient_list = silhouette_coefficients(customers, labels)
     return np.mean(coefficient_list)
 
-# calculate and return the silhouette coefficient of each sample
+# calculate the silhouette coefficient of each sample
 def silhouette_coefficients(customers, labels):
     coefficient_list = []
     cluster_list = cluster_grouping(customers, labels)
@@ -42,20 +45,24 @@ def silhouette_coefficients(customers, labels):
     
     return np.array(coefficient_list)
 
-def RMSSTD(customers, labels):
+def RMSSTD(customers, labels, model='kmean'):
+    centroid_func = get_centroid_func(model)
+
     cluster_list = cluster_grouping(customers, labels)
     sum_square_error = 0
     k = len(cluster_list)
     P = len(customers[0])
 
     for cluster_i in cluster_list:
-        centroid_i = centroid(cluster_i)
+        centroid_i = centroid_func(cluster_i)
         for cus in cluster_i:
             sum_square_error += euclidean_distance(cus, centroid_i) ** 2
     
     return math.sqrt( sum_square_error / (P * (len(customers) - k)) )
 
-def dunn_index(customers, labels):
+def dunn_index(customers, labels, model='kmean'):
+    centroid_func = get_centroid_func(model)
+
     min_inter_dist = math.inf
     max_intra_dist = 0
     cluster_list = cluster_grouping(customers, labels)
@@ -63,7 +70,7 @@ def dunn_index(customers, labels):
     # Calculate minimum inter distance (using centroid distance)
     centroid_list = []
     for cluster in cluster_list:
-        centroid_list.append(centroid(cluster))
+        centroid_list.append(centroid_func(cluster))
     
     k = len(centroid_list)
     for i in range(k):
@@ -79,16 +86,18 @@ def dunn_index(customers, labels):
     # Calculate dunn index
     return min_inter_dist / max_intra_dist
 
-def davies_bouldin_index(customers, labels):
+def davies_bouldin_index(customers, labels, model='kmean'):
+    centroid_func = get_centroid_func(model)
+
     db_index = 0
     cluster_list = cluster_grouping(customers, labels)
     
     for i in range(len(cluster_list)):
-        centroid_i = centroid(cluster_list[i])
+        centroid_i = centroid_func(cluster_list[i])
         max_score = 0
         for j in range(len(cluster_list)):
             if i == j: continue
-            centroid_j = centroid(cluster_list[j])
+            centroid_j = centroid_func(cluster_list[j])
             score = (mean_error_single_cluster(cluster_list[i]) + mean_error_single_cluster(cluster_list[j])) \
                     / euclidean_distance(centroid_i, centroid_j)
             max_score = max(score, max_score)
@@ -117,5 +126,8 @@ def cluster_grouping(customers, labels):
     
     return cluster_list
 
-def centroid(cluster):
-    return np.mean(cluster, axis=0)
+def get_centroid_func(model):
+    if model == 'kmedian':
+        return k_median_centroid
+    else:
+        return k_mean_centroid

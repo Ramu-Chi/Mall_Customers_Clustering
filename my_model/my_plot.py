@@ -3,36 +3,69 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import numpy as np
 
-from .cluster_metric import silhouette_coefficients, silhouette_score, cluster_grouping, centroid
-from .k_mean import KMeans
+from .cluster_metric import silhouette_coefficients, silhouette_score, cluster_grouping
+from .k_mean import KMeans, centroid as k_mean_centroid
+from .k_median import KMedians, centroid as k_median_centroid
 
-def plot_elbow_method(customers, k_max):
-    final_sse_list = []
+def plot_elbow_method(customers, k_max, model='kmean'):
+    kmean_sse_list = []
+    kmedian_sse_list = []
     for i in range(2, k_max + 1):
         km = KMeans(k=i)
         hist = km.fit(customers)
-        final_sse_list.append(hist['SSE'][-1])
+        kmean_sse_list.append(hist['SSE'][-1])
 
-    plt.plot(range(2, k_max + 1), final_sse_list)
-    plt.title('Elbow Method')
+        km = KMedians(k=i)
+        hist = km.fit(customers)
+        kmedian_sse_list.append(hist['SSE'][-1])
+
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plt.title('K-means')
+    plt.plot(range(2, k_max + 1), kmean_sse_list)
     plt.ylabel('Sum Square Error')
     plt.xlabel('K')
     plt.xticks(range(2, k_max + 1))
+
+    plt.subplot(1, 2, 2)
+    plt.title('K-medians')
+    plt.plot(range(2, k_max + 1), kmedian_sse_list)
+    plt.ylabel('Sum Square Error')
+    plt.xlabel('K')
+    plt.xticks(range(2, k_max + 1))
+
+    plt.suptitle('Elbow Method')
     # plt.savefig('fig/elbow_method.png')
     plt.show()
 
-def plot_silhouette_method(customers, k_max):
-    silhouette_score_list = []
+def plot_silhouette_method(customers, k_max, model='kmean'):
+    kmean_silhouette_score_list = []
+    kmedian_silhouette_score_list = []
     for i in range(2, k_max + 1):
         km = KMeans(k=i)
         km.fit(customers)
-        silhouette_score_list.append(silhouette_score(customers, km.predict(customers)))
+        kmean_silhouette_score_list.append(silhouette_score(customers, km.predict(customers)))
 
-    plt.plot(range(2, k_max + 1), silhouette_score_list)
-    plt.title('Silhouette Method')
+        km = KMedians(k=i)
+        km.fit(customers)
+        kmedian_silhouette_score_list.append(silhouette_score(customers, km.predict(customers)))
+
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plt.title('K-means')
+    plt.plot(range(2, k_max + 1), kmean_silhouette_score_list)
     plt.ylabel('Silhouette Score')
     plt.xlabel('K')
     plt.xticks(range(2, k_max + 1))
+
+    plt.subplot(1, 2, 2)
+    plt.title('K-medians')
+    plt.plot(range(2, k_max + 1), kmedian_silhouette_score_list)
+    plt.ylabel('Silhouette Score')
+    plt.xlabel('K')
+    plt.xticks(range(2, k_max + 1))
+
+    plt.suptitle('Silhouette Method')
     # plt.savefig('fig/silhouette_method.png')
     plt.show()
 
@@ -72,10 +105,12 @@ def plot_silhouette_single_k(customers, labels):
     plt.yticks([])
     plt.show()
 
-def plot_customer_clusters(customers, labels, field_names, outliers=None):
+def plot_customer_clusters(customers, labels, field_names, model='kmean', outliers=None):
+    centroid_func = get_centroid_func(model)
+
     k = len(set(labels))
     cluster_list = cluster_grouping(customers, labels)
-    centroid_list = np.array([centroid(cluster_list[i]) for i in range(k)])
+    centroid_list = np.array([centroid_func(cluster_list[i]) for i in range(k)])
 
     colors = cm.nipy_spectral(labels.astype(float) / k)
     for idx1 in range(len(customers[0])):
@@ -114,3 +149,15 @@ def plot_train_history(SSE_hist):
     plt.xlabel("Iteration")
     plt.ylabel("SSE")
     plt.show()
+
+def get_model(model):
+    if model == 'kmedian':
+        return KMedians
+    else:
+        return KMeans
+
+def get_centroid_func(model):
+    if model == 'kmedian':
+        return k_median_centroid
+    else:
+        return k_mean_centroid
