@@ -8,64 +8,36 @@ from .k_mean import KMeans, centroid as k_mean_centroid
 from .k_median import KMedians, centroid as k_median_centroid
 
 def plot_elbow_method(customers, k_max, model='kmean'):
-    kmean_sse_list = []
-    kmedian_sse_list = []
+    KFamilyModel = get_model(model)
+    sse_list = []
     for i in range(2, k_max + 1):
-        km = KMeans(k=i)
+        km = KFamilyModel(k=i)
         hist = km.fit(customers)
-        kmean_sse_list.append(hist['SSE'][-1])
+        sse_list.append(hist['SSE'][-1])
 
-        km = KMedians(k=i)
-        hist = km.fit(customers)
-        kmedian_sse_list.append(hist['SSE'][-1])
-
-    plt.figure(figsize=(10, 5))
-    plt.subplot(1, 2, 1)
-    plt.title('K-means')
-    plt.plot(range(2, k_max + 1), kmean_sse_list)
+    plt.title('Elbow Method ' + KFamilyModel.__name__)
+    plt.plot(range(2, k_max + 1), sse_list)
     plt.ylabel('Sum Square Error')
     plt.xlabel('K')
     plt.xticks(range(2, k_max + 1))
 
-    plt.subplot(1, 2, 2)
-    plt.title('K-medians')
-    plt.plot(range(2, k_max + 1), kmedian_sse_list)
-    plt.ylabel('Sum Square Error')
-    plt.xlabel('K')
-    plt.xticks(range(2, k_max + 1))
-
-    plt.suptitle('Elbow Method')
     # plt.savefig('fig/elbow_method.png')
     plt.show()
 
 def plot_silhouette_method(customers, k_max, model='kmean'):
-    kmean_silhouette_score_list = []
-    kmedian_silhouette_score_list = []
+    KFamilyModel = get_model(model)
+    silhouette_score_list = []
     for i in range(2, k_max + 1):
-        km = KMeans(k=i)
+        km = KFamilyModel(k=i)
         km.fit(customers)
-        kmean_silhouette_score_list.append(silhouette_score(customers, km.predict(customers)))
+        silhouette_score_list.append(silhouette_score(customers, km.predict(customers)))
 
-        km = KMedians(k=i)
-        km.fit(customers)
-        kmedian_silhouette_score_list.append(silhouette_score(customers, km.predict(customers)))
-
-    plt.figure(figsize=(10, 5))
-    plt.subplot(1, 2, 1)
-    plt.title('K-means')
-    plt.plot(range(2, k_max + 1), kmean_silhouette_score_list)
+    plt.title('Silhouette Method ' + KFamilyModel.__name__)
+    plt.plot(range(2, k_max + 1), silhouette_score_list)
     plt.ylabel('Silhouette Score')
     plt.xlabel('K')
     plt.xticks(range(2, k_max + 1))
 
-    plt.subplot(1, 2, 2)
-    plt.title('K-medians')
-    plt.plot(range(2, k_max + 1), kmedian_silhouette_score_list)
-    plt.ylabel('Silhouette Score')
-    plt.xlabel('K')
-    plt.xticks(range(2, k_max + 1))
-
-    plt.suptitle('Silhouette Method')
     # plt.savefig('fig/silhouette_method.png')
     plt.show()
 
