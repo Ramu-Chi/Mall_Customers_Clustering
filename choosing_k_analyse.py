@@ -18,8 +18,8 @@ X[:, 0] /= 3 # weight age = 1/3
 print(FIELD)
 print(X)
 
-plot_elbow_method(X, 12)
-plot_silhouette_method(X, 12)
+plot_elbow_method(X, 12, model='kmean')
+plot_silhouette_method(X, 12, model='kmean')
 
 # plot silhouette of K-means for k = 5
 km = KMeans(5)

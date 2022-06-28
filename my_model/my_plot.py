@@ -105,7 +105,7 @@ def plot_silhouette_single_k(customers, labels):
     plt.yticks([])
     plt.show()
 
-def plot_customer_clusters(customers, labels, field_names, model='kmean', outliers=None):
+def plot_customer_clusters(customers, labels, field_names, model='kmean', outliers=None, title=""):
     centroid_func = get_centroid_func(model)
 
     k = len(set(labels))
@@ -137,7 +137,7 @@ def plot_customer_clusters(customers, labels, field_names, model='kmean', outlie
             if outliers is not None:
                 plt.scatter(*zip(*outliers[:, [idx1, idx2]]), marker='o', facecolor='None', edgecolor='r', s=60)
 
-            plt.title("Customer Clusters")
+            plt.title("Customer Clusters " + title)
             plt.xlabel(field_names[idx1])
             plt.ylabel(field_names[idx2])
             plt.show()
